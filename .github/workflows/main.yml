@@ -11,7 +11,7 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: https://c3.my-control-panel.com:2083/
+        server: ${{ secrets.server }}
         username: ${{ secrets.username }}
         password: ${{ secrets.password }}
-        server-dir: /deploy/
+        port: 21
