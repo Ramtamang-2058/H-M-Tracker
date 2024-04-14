@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 import requests
 import re
 
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 @api_view(['POST'])
 def scrape_amazon(request):
     url = request.data.get('url')
@@ -71,6 +74,7 @@ def save_product_to_database(product_data, url):
     return product_instance
 
 
+@csrf_exempt
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
@@ -88,7 +92,7 @@ def register_user(request):
         return Response({"message": "Username and password are required"}, status=400)
 
 
-
+@csrf_exempt
 @api_view(['POST'])
 def login_user(request):
     username = request.data.get('username')
