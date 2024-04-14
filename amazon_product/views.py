@@ -1,15 +1,11 @@
 # views.py
 from .models import Product, ProductUrl
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
+from django.http import JsonResponse
 import requests
-from bs4 import BeautifulSoup
-import re
 
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from bs4 import BeautifulSoup
 import requests
@@ -62,12 +58,10 @@ def scrape_amazon(request):
         return Response({"error": "URL or user parameter is missing. OR user already associated with Product."}, status=400)
 
 def save_product_to_database(product_data, url):
-    user_instance =User.objects.get(username=product_data["user"])
-    if user_instance:
-        ProductUrl.objects.create(user=product_data["user"], url=url)
+    
 
     product_instance = Product.objects.create(
-        user=user_instance,
+        user=product_data.get("user"),
         name=product_data.get("title"),
         image=product_data.get("image"),
         price=product_data.get("price")
@@ -115,3 +109,26 @@ def is_valid(user, url):
         return False
     else:
         return True
+    
+
+
+def get_products_by_user(request):
+    user = request.GET.get('user')
+    print(user)
+    products = Product.objects.filter(user=user)
+    data = [{'name': product.name, 'price': product.price, 'image': product.image} for product in products]
+    return JsonResponse(data, safe=False)
+
+def get_product_details(request, product_id):
+    try:
+        product = Product.objects.get(pk=product_id)
+        data = {
+            'name': product.name,
+            'price': product.price,
+            'created_date': product.created_date,
+            'modified_date': product.modified_date,
+            'image': product.image
+        }
+        return JsonResponse(data)
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
