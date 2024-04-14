@@ -127,15 +127,25 @@ def is_valid(user, url):
 def get_products_by_user(request):
     user = request.GET.get('user')
     products = Product.objects.filter(user=user)
-    data = [{'name': product.name, 'price': product.price, 'image': product.image} for product in products]
+    data = [{
+        'id': product.id,
+        'name': product.name,
+        'price': product.price,
+        'target_price': product.user_price,
+        'current_price': product.current_price,
+        'image': product.image}
+        for product in products]
     return JsonResponse(data, safe=False)
 
 def get_product_details(request, product_id):
     try:
         product = Product.objects.get(pk=product_id)
         data = {
+            'id': product.id,
             'name': product.name,
             'price': product.price,
+            'target_price': product.user_price,
+            'current_price': product.current_price,
             'created_date': product.created_date,
             'modified_date': product.modified_date,
             'image': product.image
