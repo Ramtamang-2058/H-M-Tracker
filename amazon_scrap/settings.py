@@ -25,9 +25,9 @@ SECRET_KEY = 'django-insecure-g^odhgf!c@a5#-bp&y_==g@wzt1q11*lw%u#ldz90!4irt5bh2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['hm.oznepalservices.com.au' '127.0.0.1', 'localhost']
 
-
+CSRF_TRUSTED_ORIGINS = ['https://hm.oznepalservices.com.au',]
 # Application definition
 
 INSTALLED_APPS = [
