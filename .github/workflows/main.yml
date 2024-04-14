@@ -12,6 +12,6 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: https://c3.my-control-panel.com:2083/
-        username: oznepalservicesc
-        password: x;}PHj9I)LkF
+        username: ${{ secrets.username }}
+        password: ${{ secrets.password }}
         server-dir: /deploy/
