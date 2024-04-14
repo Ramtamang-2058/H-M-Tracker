@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 @api_view(['POST'])
 def scrape_amazon(request):
+    print(request.data)
     url = request.data.get('url')
     user = request.data.get("user")
     user_price = request.data.get("price")
@@ -114,6 +115,11 @@ def is_valid(user, url):
     if ProductUrl.objects.filter(user=user, url=url).exists():
         return False
     else:
+        product_instance = ProductUrl(
+            user=user,
+            url=url
+        )
+        product_instance.save()
         return True
     
 
