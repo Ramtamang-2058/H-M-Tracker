@@ -15,6 +15,7 @@ import re
 def scrape_amazon(request):
     url = request.data.get('url')
     user = request.data.get("user")
+    user_price = request.data.get("price")
     if user and url and is_valid(user=user, url=url):
         custom_headers = {
             "Accept-language": "en-GB,en;q=0.9",
@@ -27,7 +28,7 @@ def scrape_amazon(request):
         resp = requests.get(url, headers=custom_headers)
         if resp.status_code == 200:
             soup = BeautifulSoup(resp.text, 'html.parser')
-            product_data = {"user": user}
+            product_data = {"user": user, "user_price": user_price}
 
             try:
                 title_h1 = soup.find("h1")
@@ -64,7 +65,8 @@ def save_product_to_database(product_data, url):
         user=product_data.get("user"),
         name=product_data.get("title"),
         image=product_data.get("image"),
-        price=product_data.get("price")
+        price=product_data.get("price"),
+        user_price=product_data.get("user_price")
     )
     return product_instance
 
@@ -114,7 +116,6 @@ def is_valid(user, url):
 
 def get_products_by_user(request):
     user = request.GET.get('user')
-    print(user)
     products = Product.objects.filter(user=user)
     data = [{'name': product.name, 'price': product.price, 'image': product.image} for product in products]
     return JsonResponse(data, safe=False)
