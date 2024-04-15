@@ -153,3 +153,38 @@ def get_product_details(request, product_id):
         return JsonResponse(data)
     except Product.DoesNotExist:
         return JsonResponse({'error': 'Product not found'}, status=404)
+    
+
+@csrf_exempt
+@api_view(['POST'])
+def delete_product(request):
+    id = request.data.get('id')
+
+    if id:
+        try:
+            product = Product.objects.get(id=id)
+            product.delete()
+            return Response({"message": "Product deleted successfully"}, status=200)
+        except Product.DoesNotExist:
+            return Response({"message": "Product does not exist"}, status=404)
+    else:
+        return Response({"message": "Please provide product ID"}, status=400)
+    
+
+
+@csrf_exempt
+@api_view(['POST'])
+def update_product(request):
+    product_id = request.data.get('id')
+    user_price = request.data.get('target_price')
+
+    if product_id and user_price:
+        try:
+            product = Product.objects.get(id=product_id)
+            product.user_price = user_price
+            product.save()
+            return Response({"message": "Product Update successfully"}, status=200)
+        except Product.DoesNotExist:
+            return Response({"message": "Product does not exist"}, status=404)
+    else:
+        return Response({"message": "Bad request"}, status=400)
