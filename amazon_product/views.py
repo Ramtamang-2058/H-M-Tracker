@@ -1,5 +1,5 @@
 # views.py
-from .models import Product, ProductUrl
+from .models import Product, ProductUrl, ProductUser
 from rest_framework.decorators import api_view
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
@@ -78,19 +78,26 @@ def save_product_to_database(product_data, url):
 @csrf_exempt
 @api_view(['POST'])
 def register_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+    user = request.data.get('user')
+    token = request.data.get('token')
+    status = request.data.get('status')
 
-    if username and password:
+    if user and token:
         # Check if the username already exists
-        if User.objects.filter(username=username).exists():
-            return Response({"message": "Username already exists"}, status=400)
+        if ProductUser.objects.filter(user=user).exists():
+            user_data = ProductUser.objects.get(user=user)
+            user_data.user = user
+            user_data.token = token
+            user_data.status = status
+            user_data.save()
+            return Response({"message": "Successfull"}, status=200)
         
         # Create the user
-        user = User.objects.create_user(username=username, password=password)
-        return Response({"message": "User created successfully"}, status=201)
+        user = ProductUser(user=user, token=token, status=status)
+        user.save()
+        return Response({"message": "Successfull"}, status=200)
     else:
-        return Response({"message": "Username and password are required"}, status=400)
+        return Response({"message": "Token and User Invalid"}, status=301)
 
 
 @csrf_exempt
