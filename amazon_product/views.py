@@ -12,6 +12,8 @@ import requests
 import re
 
 from django.views.decorators.csrf import csrf_exempt
+from firebase_admin.messaging import Message, Notification
+from fcm_django.models import FCMDevice
 
 @csrf_exempt
 @api_view(['POST'])
@@ -83,6 +85,8 @@ def register_user(request):
     status = request.data.get('status')
 
     if user and token:
+        import pdb
+        pdb.set_trace()
         # Check if the username already exists
         if ProductUser.objects.filter(user=user).exists():
             user_data = ProductUser.objects.get(user=user)
@@ -90,6 +94,22 @@ def register_user(request):
             user_data.token = token
             user_data.status = status
             user_data.save()
+            device = FCMDevice()
+            device.name = user
+            device.registration_id = token #sent by the mobile
+            device.device_id = "Device -" + "user"
+            device.type = "android"
+            if status == "login":
+                device.active = True
+            else:
+                device.active = False
+            device.save()
+            message = Message(
+            notification=Notification(title="My title", body="my test", image="noimage")
+            )
+            device = FCMDevice.objects.get(name=user).first()
+            print(device)
+            device.send_message(message)
             return Response({"message": "Successfull"}, status=200)
         
         # Create the user
@@ -195,3 +215,7 @@ def update_product(request):
             return Response({"message": "Product does not exist"}, status=404)
     else:
         return Response({"message": "Bad request"}, status=400)
+    
+
+
+    
