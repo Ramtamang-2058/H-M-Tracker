@@ -97,15 +97,11 @@ def register_user(request):
             device.registration_id = token #sent by the mobile
             device.device_id = "Device -" + "user"
             device.type = "android"
-            if status == "login":
-                device.active = True
-            else:
-                device.active = False
             device.save()
             message = Message(
             notification=Notification(title="My title", body="my test", image="noimage")
             )
-            device = FCMDevice.objects.get(name=user).first()
+            device = FCMDevice.objects.filter(name=user).first()
             print(device)
             device.send_message(message)
             return Response({"message": "Successfull"}, status=200)
