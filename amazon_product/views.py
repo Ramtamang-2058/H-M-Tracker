@@ -85,8 +85,6 @@ def register_user(request):
     status = request.data.get('status')
 
     if user and token:
-        import pdb
-        pdb.set_trace()
         # Check if the username already exists
         if ProductUser.objects.filter(user=user).exists():
             user_data = ProductUser.objects.get(user=user)
