@@ -9,13 +9,14 @@ from .views import (
     get_products_by_user,
     delete_product,
     update_product,
+    notify
 )
 
 
 urlpatterns = [
     path('scrape/', scrape_amazon, name='scrape_amazon'),
     path('register/', register_user, name='register_user'),
-    path('login/', login_user, name='login_user'),
+    path('login/', notify, name='login_user'),
     path('products/', get_products_by_user, name='get_products_by_user'),
     path('products/<int:product_id>/', get_product_details, name='get_product_details'),
     path('products/delete/', delete_product, name='delete_product'),

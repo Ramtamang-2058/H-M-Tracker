@@ -1,0 +1,65 @@
+# views.py
+from .models import Product
+import requests
+
+from bs4 import BeautifulSoup
+import requests
+
+from firebase_admin.messaging import Message, Notification
+from fcm_django.models import FCMDevice
+from background_task import background
+
+
+@background(schedule=3600)
+def my_job():
+    try:
+        products = Product.objects.all()
+        for product in products:
+            product_price = scrap_price(product.url)
+            current_price = extract_integer_price(product_price)
+            user_price = extract_integer_price(product.user_price)
+            if current_price < user_price:
+                notify_user(user=product.user, name=product.name, image=product.image, price=product_price)
+    except:
+        return
+
+
+def notify_user(user, name, image, price):
+    message = Message(
+        notification=Notification(title=f"Price Drop Alert: {price}", body=name, image=image)
+    )
+    device = FCMDevice.objects.get(device_id=user)
+    device.send_message(message)
+
+
+def extract_integer_price(price_str):
+    # Remove any non-numeric characters from the price string
+    price_digits = ''.join(filter(str.isdigit, price_str))
+    if price_digits:
+        # Convert the cleaned price string to an integer
+        return int(price_digits)
+    return None
+
+
+def scrap_price(url):
+    custom_headers = {
+        "Accept-language": "en-GB,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "max-age=0",
+        "Connection": "keep-alive",
+        "User-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+    }
+
+    resp = requests.get(url, headers=custom_headers)
+    if resp.status_code == 200:
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        try:
+            price_span = soup.find("span", class_="price-value")
+            price = price_span.get_text(strip=True)
+            return price
+        except:
+            return
+
+
+    else:
+        return

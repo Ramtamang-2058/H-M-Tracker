@@ -9,11 +9,12 @@ import requests
 from rest_framework.response import Response
 from bs4 import BeautifulSoup
 import requests
-import re
 
 from django.views.decorators.csrf import csrf_exempt
 from firebase_admin.messaging import Message, Notification
 from fcm_django.models import FCMDevice
+from background_task import background
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -58,21 +59,25 @@ def scrape_amazon(request):
             if response:
                 return Response(product_data)
             else:
-                return Response({"error":"Failed to save on database."}, status=500)
+                return Response({"error": "Failed to save on database."}, status=500)
         else:
             return Response({"error": "Failed to fetch data from the URL."}, status=400)
     else:
-        return Response({"error": "URL or user parameter is missing. OR user already associated with Product."}, status=400)
+        return Response({"error": "URL or user parameter is missing. OR user already associated with Product."},
+                        status=400)
+
 
 def save_product_to_database(product_data, url):
-    
-
+    """
+    Save data of product to the database
+    """
     product_instance = Product.objects.create(
         user=product_data.get("user"),
         name=product_data.get("title"),
         image=product_data.get("image"),
         price=product_data.get("price"),
-        user_price=product_data.get("user_price")
+        user_price=product_data.get("user_price"),
+        url=url
     )
     return product_instance
 
@@ -80,6 +85,9 @@ def save_product_to_database(product_data, url):
 @csrf_exempt
 @api_view(['POST'])
 def register_user(request):
+    """
+    Register user with token
+    """
     user = request.data.get('user')
     token = request.data.get('token')
     status = request.data.get('status')
@@ -94,18 +102,12 @@ def register_user(request):
             user_data.save()
             device = FCMDevice()
             device.name = user
-            device.registration_id = token #sent by the mobile
-            device.device_id = "Device -" + "user"
+            device.registration_id = token
+            device.device_id = user
             device.type = "android"
             device.save()
-            message = Message(
-            notification=Notification(title="My title", body="my test", image="noimage")
-            )
-            device = FCMDevice.objects.filter(name=user).first()
-            print(device)
-            device.send_message(message)
             return Response({"message": "Successfull"}, status=200)
-        
+
         # Create the user
         user = ProductUser(user=user, token=token, status=status)
         user.save()
@@ -130,9 +132,12 @@ def login_user(request):
             return Response({"message": "Invalid username or password"}, status=400)
     else:
         return Response({"message": "Username and password are required"}, status=400)
-    
+
 
 def is_valid(user, url):
+    """
+    validate user exist or not.
+    """
     if ProductUrl.objects.filter(user=user, url=url).exists():
         return False
     else:
@@ -142,10 +147,12 @@ def is_valid(user, url):
         )
         product_instance.save()
         return True
-    
 
 
 def get_products_by_user(request):
+    """
+    Get all products by the user.
+    """
     user = request.GET.get('user')
     products = Product.objects.filter(user=user)
     data = [{
@@ -154,11 +161,16 @@ def get_products_by_user(request):
         'price': product.price,
         'target_price': product.user_price,
         'current_price': product.current_price,
-        'image': product.image}
+        'image': product.image,
+        'url': product.url}
         for product in products]
     return JsonResponse(data, safe=False)
 
+
 def get_product_details(request, product_id):
+    """
+    Get product details with product ID.
+    """
     try:
         product = Product.objects.get(pk=product_id)
         data = {
@@ -169,16 +181,20 @@ def get_product_details(request, product_id):
             'current_price': product.current_price,
             'created_date': product.created_date,
             'modified_date': product.modified_date,
-            'image': product.image
+            'image': product.image,
+            'url': product.url,
         }
         return JsonResponse(data)
     except Product.DoesNotExist:
         return JsonResponse({'error': 'Product not found'}, status=404)
-    
+
 
 @csrf_exempt
 @api_view(['POST'])
 def delete_product(request):
+    """
+    Delete product.
+    """
     id = request.data.get('id')
 
     if id:
@@ -190,12 +206,14 @@ def delete_product(request):
             return Response({"message": "Product does not exist"}, status=404)
     else:
         return Response({"message": "Please provide product ID"}, status=400)
-    
 
 
 @csrf_exempt
 @api_view(['POST'])
 def update_product(request):
+    """
+    Update product.
+    """
     product_id = request.data.get('id')
     user_price = request.data.get('target_price')
 
@@ -209,7 +227,15 @@ def update_product(request):
             return Response({"message": "Product does not exist"}, status=404)
     else:
         return Response({"message": "Bad request"}, status=400)
-    
 
 
-    
+def notify(request):
+    """
+    Test notification.
+    """
+    message = Message(
+        notification=Notification(title="My Ping", body="My Ping", image="noimage")
+    )
+    device = FCMDevice.objects.get(device_id="ythy")
+    device.send_message(message)
+    return Response(status=200)

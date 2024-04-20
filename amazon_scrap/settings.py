@@ -9,9 +9,9 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
-from firebase_admin import initialize_app
+from firebase_admin import initialize_app, credentials
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'amazon_product',
     'rest_framework',
     'fcm_django',
+    'background_task',
 ]
 
 MIDDLEWARE = [
@@ -138,39 +139,26 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Optional ONLY IF you have initialized a firebase app already:
-# Visit https://firebase.google.com/docs/admin/setup/#python
-# for more options for the following:
-# Store an environment variable called GOOGLE_APPLICATION_CREDENTIALS
-# which is a path that point to a json file with your credentials.
-# Additional arguments are available: credentials, options, name
-FIREBASE_APP = initialize_app()
-# To learn more, visit the docs here:
-# https://cloud.google.com/docs/authentication/getting-started>
+# Path to Firebase credentials file
+FIREBASE_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'credentials', 'fir-trial-794a0-firebase-adminsdk-ncndd-6366a41cbb.json')
+cred = credentials.Certificate(FIREBASE_CREDENTIALS_FILE)
+
+FIREBASE_APP = initialize_app(cred, {
+    'projectId': 'fir-trial-794a0'
+})
+
 
 FCM_DJANGO_SETTINGS = {
-     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-     # default: None (the default Firebase app)
     "DEFAULT_FIREBASE_APP": None,
-     # default: _('FCM Django')
     "APP_VERBOSE_NAME": "1.0.0.1",
-     # true if you want to have only one active device per registered user at a time
-     # default: False
     "ONE_DEVICE_PER_USER": False,
-     # devices to which notifications cannot be sent,
-     # are deleted upon receiving error response from FCM
-     # default: False
     "DELETE_INACTIVE_DEVICES": False,
 }
