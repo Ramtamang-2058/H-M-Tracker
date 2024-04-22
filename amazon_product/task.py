@@ -16,11 +16,16 @@ def my_job():
         products = Product.objects.all()
         for product in products:
             product_price = scrap_price(product.url)
+            product.current_price = product_price if product_price else product.user_price
+            product.save()
             current_price = extract_integer_price(product_price)
             user_price = extract_integer_price(product.user_price)
             if current_price < user_price:
                 notify_user(user=product.user, name=product.name, image=product.image, price=product_price)
-    except:
+        
+        return
+    
+    except Exception as e:
         return
 
 

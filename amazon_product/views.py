@@ -77,6 +77,7 @@ def save_product_to_database(product_data, url):
         image=product_data.get("image"),
         price=product_data.get("price"),
         user_price=product_data.get("user_price"),
+        current_price=product_data.get("user_price"),
         url=url
     )
     return product_instance
