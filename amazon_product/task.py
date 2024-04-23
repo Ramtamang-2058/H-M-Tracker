@@ -10,6 +10,22 @@ from fcm_django.models import FCMDevice
 from background_task import background
 
 
+def check_and_update_product(product):
+    
+    try:
+        product_price = scrap_price(product.url)
+        product.current_price = product_price if product_price else product.user_price
+        product.save()
+        current_price = extract_integer_price(product_price)
+        user_price = extract_integer_price(product.user_price)
+        if current_price < user_price:
+                notify_user(user=product.user, name=product.name, image=product.image, price=product_price)
+        
+        return
+    
+    except Exception as e:
+        return
+
 @background(schedule=3600)
 def my_job():
     try:

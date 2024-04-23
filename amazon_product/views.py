@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from firebase_admin.messaging import Message, Notification
 from fcm_django.models import FCMDevice
 from background_task import background
+from .task import check_and_update_product
 
 
 @csrf_exempt
@@ -77,7 +78,7 @@ def save_product_to_database(product_data, url):
         image=product_data.get("image"),
         price=product_data.get("price"),
         user_price=product_data.get("user_price"),
-        current_price=product_data.get("user_price"),
+        current_price=product_data.get("price"),
         url=url
     )
     return product_instance
@@ -107,6 +108,9 @@ def register_user(request):
             device.device_id = user
             device.type = "android"
             device.save()
+            products = Product.objects.filter(user=user)
+            for product in products:
+                check_and_update_product(product=product)
             return Response({"message": "Successfull"}, status=200)
 
         # Create the user
@@ -156,6 +160,9 @@ def get_products_by_user(request):
     """
     user = request.GET.get('user')
     products = Product.objects.filter(user=user)
+
+    for product in products:
+        check_and_update_product(product=product)
     data = [{
         'id': product.id,
         'name': product.name,
@@ -174,6 +181,7 @@ def get_product_details(request, product_id):
     """
     try:
         product = Product.objects.get(pk=product_id)
+        check_and_update_product(product=product)
         data = {
             'id': product.id,
             'name': product.name,
@@ -223,6 +231,7 @@ def update_product(request):
             product = Product.objects.get(id=product_id)
             product.user_price = user_price
             product.save()
+            check_and_update_product(product=product)
             return Response({"message": "Product Update successfully"}, status=200)
         except Product.DoesNotExist:
             return Response({"message": "Product does not exist"}, status=404)
