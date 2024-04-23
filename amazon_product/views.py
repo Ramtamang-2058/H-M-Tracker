@@ -20,7 +20,6 @@ from .task import check_and_update_product
 @csrf_exempt
 @api_view(['POST'])
 def scrape_amazon(request):
-    print(request.data)
     url = request.data.get('url')
     user = request.data.get("user")
     user_price = request.data.get("price")

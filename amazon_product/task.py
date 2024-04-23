@@ -8,6 +8,7 @@ import requests
 from firebase_admin.messaging import Message, Notification
 from fcm_django.models import FCMDevice
 from background_task import background
+import re
 
 
 def check_and_update_product(product):
@@ -54,12 +55,17 @@ def notify_user(user, name, image, price):
 
 
 def extract_integer_price(price_str):
-    # Remove any non-numeric characters from the price string
-    price_digits = ''.join(filter(str.isdigit, price_str))
-    if price_digits:
-        # Convert the cleaned price string to an integer
-        return int(price_digits)
-    return None
+   
+    # Remove the dollar sign from the price string
+    price_digits = price_str.replace('$', '')
+    
+    try:
+        # Convert the cleaned price string to a float
+        return float(price_digits)
+    except ValueError:
+        return None
+
+
 
 
 def scrap_price(url):
