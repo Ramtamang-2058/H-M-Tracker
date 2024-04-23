@@ -242,9 +242,10 @@ def notify(request):
     """
     Test notification.
     """
+    # Assuming Message and Notification classes are defined somewhere
     message = Message(
-        notification=Notification(title="My Ping", body="My Ping", image="noimage")
+        notification=Notification(title="Price Drop Alert: $78", body="Mne Man Gens  6/7 gen", image="https://play-lh.googleusercontent.com/yv-m6uiayzk8I95XavI3iANy1KsidyZapBgMxwMuIYERQUKbLJ0X5hfpzaNR8WfckrM=w240-h480-rw")
     )
-    device = FCMDevice.objects.get(device_id="ythy")
+    device = FCMDevice.objects.first()
     device.send_message(message)
     return Response(status=200)
