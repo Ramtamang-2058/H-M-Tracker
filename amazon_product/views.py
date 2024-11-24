@@ -43,14 +43,14 @@ def scrape_amazon(request):
             except:
                 product_data["title"] = None
             try:
-                img_tag = soup.find('figure', class_='pdp-image').find('img')
-                image = f"https:{img_tag['src']}"
+                img_tag = soup.find('div', class_='fcc68c a33b36 f6e252').find('img')
+                image = img_tag['src']
                 product_data["image"] = image
             except:
                 product_data["image"] = None
 
             try:
-                price_span = soup.find("span", class_="price-value")
+                price_span = soup.find("span", class_="edbe20 ac3d9e d9ca8b")
                 product_data["price"] = price_span.get_text(strip=True)
             except:
                 product_data["price"] = None
