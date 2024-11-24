@@ -12,7 +12,6 @@ import re
 
 
 def check_and_update_product(product):
-    
     try:
         product_price = scrap_price(product.url)
         product.current_price = product_price if product_price else product.user_price
@@ -20,12 +19,13 @@ def check_and_update_product(product):
         current_price = extract_integer_price(product_price)
         user_price = extract_integer_price(product.user_price)
         if current_price < user_price:
-                notify_user(user=product.user, name=product.name, image=product.image, price=product_price)
-        
+            notify_user(user=product.user, name=product.name, image=product.image, price=product_price)
+
         return
-    
+
     except Exception as e:
         return
+
 
 @background(schedule=3600)
 def my_job():
@@ -33,15 +33,15 @@ def my_job():
         products = Product.objects.all()
         for product in products:
             product_price = scrap_price(product.url)
-            product.current_price = product_price if product_price else product.user_price
+            product.current_price = product_price if product_price else product.price
             product.save()
             current_price = extract_integer_price(product_price)
             user_price = extract_integer_price(product.user_price)
             if current_price < user_price:
                 notify_user(user=product.user, name=product.name, image=product.image, price=product_price)
-        
+
         return
-    
+
     except Exception as e:
         return
 
@@ -55,17 +55,14 @@ def notify_user(user, name, image, price):
 
 
 def extract_integer_price(price_str):
-   
     # Remove the dollar sign from the price string
     price_digits = price_str.replace('$', '')
-    
+
     try:
         # Convert the cleaned price string to a float
         return float(price_digits)
     except ValueError:
         return None
-
-
 
 
 def scrap_price(url):
@@ -81,7 +78,7 @@ def scrap_price(url):
     if resp.status_code == 200:
         soup = BeautifulSoup(resp.text, 'html.parser')
         try:
-            price_span = soup.find("span", class_="price-value")
+            price_span = soup.find("span", class_="edbe20 ac3d9e d9ca8b")
             price = price_span.get_text(strip=True)
             return price
         except:
