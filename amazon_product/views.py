@@ -20,11 +20,10 @@ from .task import check_and_update_product
 @csrf_exempt
 @api_view(['POST'])
 def scrape_amazon(request):
-    url = "https://www2.hm.com/en_us/productpage.1101014009.html"
+    url = request.data.get('url')
     user = request.data.get("user")
     user_price = request.data.get("price")
-    if url:
-
+    if user and url and is_valid(user=user, url=url):
         custom_headers = {
             "Accept-language": "en-GB,en;q=0.9",
             "Accept-Encoding": "gzip, deflate, br",
@@ -34,7 +33,6 @@ def scrape_amazon(request):
         }
 
         resp = requests.get(url, headers=custom_headers)
-        breakpoint()
         if resp.status_code == 200:
             soup = BeautifulSoup(resp.text, 'html.parser')
             product_data = {"user": user, "user_price": user_price}
